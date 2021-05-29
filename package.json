@@ -1,0 +1,14 @@
+{
+  "name": "serverless.permafrost.dev",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Patrick Organ <patrick@permafrost.dev>",
+  "license": "MIT",
+  "devDependencies": {
+    "netlify-cli": "^3.31.16"
+  }
+}
