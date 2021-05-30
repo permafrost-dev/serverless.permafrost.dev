@@ -1,6 +1,6 @@
 import { Handler } from "@netlify/functions";
 import { sizes, colors, weights } from './tailwind';
-import { randomInt, randomElement } from './helpers';
+import { randomInt, randomElement } from './../shared/helpers';
 
 /**
  * This function is used in an attempt to make sure that dark text => light bg and vice verse.
