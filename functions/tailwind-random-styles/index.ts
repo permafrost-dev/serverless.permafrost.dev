@@ -1,76 +1,75 @@
 import { Handler } from "@netlify/functions";
+import { sizes, colors, weights } from './tailwind';
+import { randomInt, randomElement } from './helpers';
 
-function shuffleArray(arr) {
-    let result = arr.slice();
+/**
+ * This function is used in an attempt to make sure that dark text => light bg and vice verse.
+ *
+ * @param weight
+ * @param weights
+ * @returns
+ */
+function getAlternateWeight(weight: number, weights: number[]): number {
+    weights = weights.sort();
+    let index = weights.indexOf(weight);
 
-    for (let i = result.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [result[i], result[j]] = [result[j], result[i]];
+    if (index === weights.length - 1) {
+        weights = weights.reverse();
+        index = 0;
     }
 
-    return result;
+    return weights[index + randomInt(2, weights.length - 1)]
+        || weights[index - randomInt(2, weights.length - 1)]
+        || weights[index - 2]
+        || weights[index + 2]
+        || randomElement(weights);
 }
 
-const sizes = [
-    'xs', 'sm', 'normal', 'lg', 'xl',
-];
-
-const colors = [
-    'red', 'blue', 'green', 'indigo', 'yellow', 'gray', '@white'
-];
-
-const weights = [
-    `100`, `200`, `400`, `600`, `800`,
-];
-
-function getRandomColor(colors: string[]): string {
-    return shuffleArray(colors).shift();
-}
-
-function getRandomTextSize() {
-    return `text-${shuffleArray(sizes).shift()}`
-}
-
-function getRandomTextColor(colors: string[], weights: string[]) {
-    const color = shuffleArray(colors).shift();
-
-    if (color.startsWith('@')) {
-        return `text-${color.replace('@', '')}`;
+class RandomCss {
+    static textSize() {
+        return `text-${randomElement(sizes)}`
     }
 
-    return `text-${color}-${shuffleArray(weights).shift()}`
-}
+    static colorFor(type: 'text' | 'bg', colors: string[], weights: number[], otherWeight: number | null = null) {
+        const color = randomElement(colors);
 
-function getRandomBgColor(colors: string[], weights: string[]) {
-    const color = shuffleArray(colors).shift();
+        if (color.startsWith('@')) {
+            return `${type}-${color.slice(1)}`;
+        }
 
-    if (color.startsWith('@')) {
-        return `bg-${color.replace('@', '')}`;
+        const weight = otherWeight
+            ? getAlternateWeight(otherWeight, weights)
+            : randomElement(weights);
+
+        return `${type}-${color}-${weight}`
     }
 
-    return `bg-${color}-${shuffleArray(weights).shift()}`
-}
+    static textColor(colors: string[], weights: number[]) {
+        return this.colorFor('text', colors, weights);
+    }
 
-function getRandomCssClasses() {
-    let tempColors = colors.slice();
-    let tempWeights = weights.slice();
+    static bgColor(colors: string[], weights: number[], textWeight: number) {
+        return this.colorFor('bg', colors, weights, textWeight);
+    }
 
-    const textColorCss = getRandomTextColor(tempColors, tempWeights);
-    const textWeight = textColorCss.replace(/[^\d]+/g, '');
-    const textColor = textColorCss.replace(/^(text|bg)-/, '').replace(/-\d+$/, '');
+    static classes() {
+        let tempColors = colors.slice();
+        let tempWeights = weights.slice();
 
-    // ensure text/bg colors and weights are different
-    tempColors.splice(tempColors.findIndex(v => v === textColor || v === `@${textColor}`), 1);
-    tempWeights.splice(tempWeights.indexOf(textWeight, 1));
+        const textColorCss = this.textColor(tempColors, tempWeights);
+        const textWeight = Number(textColorCss.replace(/[^\d]+/g, '').padStart(1, '0'));
+        const textColor = textColorCss.replace(/^(text|bg)-/, '').replace(/-\d+$/, '');
 
-    // if (tempColors.indexOf(textColor) > -1) {
+        // ensure text/bg colors and weights are different
+        tempColors.splice(tempColors.findIndex(v => v.replace('@', '') === textColor), 1);
+        tempWeights.splice(tempWeights.indexOf(textWeight, 1));
 
-    //     tempColors.splice(tempColors.indexOf(textColor), 1);
-    // } else {
-    //     tempColors.splice(tempColors.indexOf(`@${textColor}`), 1);
-    // }
-
-    return `${getRandomTextSize()} ${textColorCss} ${getRandomBgColor(tempColors, tempWeights)}`;
+        return [
+            this.textSize(),
+            textColorCss,
+            this.bgColor(tempColors, weights, textWeight),
+        ].join(' ');
+    }
 }
 
 const handler: Handler = async (event, context) => {
@@ -79,7 +78,7 @@ const handler: Handler = async (event, context) => {
     headers: {
         'content-type': 'application/json',
     },
-    body: JSON.stringify({ classes: getRandomCssClasses() }),
+    body: JSON.stringify({ classes: RandomCss.classes() }),
   };
 };
 
