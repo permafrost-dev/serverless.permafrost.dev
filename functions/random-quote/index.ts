@@ -17,9 +17,9 @@ function getQuote(count = 1): Quote[] {
     for(let i = 0; i < count; i++) {
         let quote = randomElement(quotes);
 
-        while(result.find(q => q.quote !== quote.quote)) {
-            quote = randomElement(quotes);
-        }
+        // while(result.find(q => q.quote !== quote.quote)) {
+        //     quote = randomElement(quotes);
+        // }
 
         result.push(quote);
     }
