@@ -1,4 +1,7 @@
-import { Handler } from "@netlify/functions";
+/* eslint-disable no-unused-vars */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
+import { Handler } from '@netlify/functions';
 import { sizes, colors, weights } from './tailwind';
 import { randomInt, randomElement } from './../shared/helpers';
 
@@ -18,16 +21,18 @@ function getAlternateWeight(weight: number, weights: number[]): number {
         index = 0;
     }
 
-    return weights[index + randomInt(2, weights.length - 1)]
-        || weights[index - randomInt(2, weights.length - 1)]
-        || weights[index - 2]
-        || weights[index + 2]
-        || randomElement(weights);
+    return (
+        weights[index + randomInt(2, weights.length - 1)] ||
+        weights[index - randomInt(2, weights.length - 1)] ||
+        weights[index - 2] ||
+        weights[index + 2] ||
+        randomElement(weights)
+    );
 }
 
 class RandomCss {
     static textSize() {
-        return `text-${randomElement(sizes)}`
+        return `text-${randomElement(sizes)}`;
     }
 
     static colorFor(type: 'text' | 'bg', colors: string[], weights: number[], otherWeight: number | null = null) {
@@ -37,11 +42,9 @@ class RandomCss {
             return `${type}-${color.slice(1)}`;
         }
 
-        const weight = otherWeight
-            ? getAlternateWeight(otherWeight, weights)
-            : randomElement(weights);
+        const weight = otherWeight ? getAlternateWeight(otherWeight, weights) : randomElement(weights);
 
-        return `${type}-${color}-${weight}`
+        return `${type}-${color}-${weight}`;
     }
 
     static textColor(colors: string[], weights: number[]) {
@@ -53,33 +56,48 @@ class RandomCss {
     }
 
     static classes() {
-        let tempColors = colors.slice();
-        let tempWeights = weights.slice();
+        const tempColors = colors.slice();
+        const tempWeights = weights.slice();
 
         const textColorCss = this.textColor(tempColors, tempWeights);
         const textWeight = Number(textColorCss.replace(/[^\d]+/g, '').padStart(1, '0'));
         const textColor = textColorCss.replace(/^(text|bg)-/, '').replace(/-\d+$/, '');
 
         // ensure text/bg colors and weights are different
-        tempColors.splice(tempColors.findIndex(v => v.replace('@', '') === textColor), 1);
+        tempColors.splice(
+            tempColors.findIndex(v => v.replace('@', '') === textColor),
+            1,
+        );
         tempWeights.splice(tempWeights.indexOf(textWeight, 1));
 
-        return [
-            this.textSize(),
-            textColorCss,
-            this.bgColor(tempColors, weights, textWeight),
-        ].join(' ');
+        return [this.textSize(), textColorCss, this.bgColor(tempColors, weights, textWeight)].join(' ');
+    }
+
+    static generateClasses(count = 1) {
+        const result = [];
+
+        for (let i = 0; i < count; i++) {
+            result.push({ classes: this.classes() });
+        }
+
+        return result;
     }
 }
 
-const handler: Handler = async (event, context) => {
-  return {
-    statusCode: 200,
-    headers: {
-        'content-type': 'application/json',
-    },
-    body: JSON.stringify({ classes: RandomCss.classes() }),
-  };
+const handler: Handler = async (event, _context) => {
+    let count = 1;
+
+    if (Object.keys(event.queryStringParameters).includes('count')) {
+        count = Number(`0${event.queryStringParameters['count'].replace(/[^\d]+/g, '')}`);
+    }
+
+    return {
+        statusCode: 200,
+        headers: {
+            'content-type': 'application/json',
+        },
+        body: JSON.stringify({ items: RandomCss.generateClasses(count) }),
+    };
 };
 
 export { handler };
