@@ -1,19 +1,38 @@
 {
-  "name": "serverless.permafrost.dev",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "build": "echo \"success\" && exit 0",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node_modules/.bin/netlify dev"
-  },
-  "author": "Patrick Organ <patrick@permafrost.dev>",
-  "license": "MIT",
-  "devDependencies": {
-    "netlify-cli": "^3.31.16"
-  },
-  "dependencies": {
-    "@netlify/functions": "^0.7.2"
-  }
+    "name": "serverless.permafrost.dev",
+    "version": "1.0.0",
+    "description": "",
+    "main": "index.js",
+    "scripts": {
+        "build": "echo \"success\" && exit 0",
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "dev": "node_modules/.bin/netlify dev",
+        "lint:staged": "./node_modules/.bin/lint-staged",
+        "prepare": "husky install"
+    },
+    "author": "Patrick Organ <patrick@permafrost.dev>",
+    "license": "MIT",
+    "lint-staged": {
+        "*.{js,ts}": [
+            "./node_modules/.bin/prettier --config .prettierrc --write",
+            "./node_modules/.bin/eslint --ext ts,js --fix"
+        ],
+        "*.{json,yaml,yml}": [
+            "./node_modules/.bin/prettier --config .prettierrc --write"
+        ]
+    },
+    "devDependencies": {
+        "@types/node": "^15.6.1",
+        "@typescript-eslint/eslint-plugin": "^4.25.0",
+        "@typescript-eslint/parser": "^4.25.0",
+        "eslint": "^7.27.0",
+        "husky": "^6.0.0",
+        "lint-staged": "^11.0.0",
+        "netlify-cli": "^3.31.16",
+        "prettier": "^2.3.0",
+        "typescript": "^4.3.2"
+    },
+    "dependencies": {
+        "@netlify/functions": "^0.7.2"
+    }
 }
