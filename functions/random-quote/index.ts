@@ -1,47 +1,31 @@
-import { Handler } from "@netlify/functions";
+/* eslint-disable no-unused-vars */
+
+import { Handler, HandlerEvent } from '@netlify/functions';
 import { quotes } from './quotes';
-import { randomElement } from './../shared/helpers';
+import { min, randomElement } from './../shared/helpers';
+import { jsonResponse, queryString } from '../shared/netlify-functions';
 
 interface Quote {
     quote: string;
     person: string;
 }
 
-function getQuote(count = 1): Quote[] {
-    const result = [];
+function getQuotes(count = 1): Quote[] {
+    const result: Quote[] = [];
 
-    if (count >= quotes.length) {
-        return quotes;
-    }
+    count = min(count, 100);
 
-    for(let i = 0; i < count; i++) {
-        let quote = randomElement(quotes);
-
-        // while(result.find(q => q.quote !== quote.quote)) {
-        //     quote = randomElement(quotes);
-        // }
-
-        result.push(quote);
+    for (let i = 0; i < count; i++) {
+        result.push(<Quote>randomElement(quotes));
     }
 
     return result;
 }
 
-const handler: Handler = async (event, context) => {
+const handler: Handler = (event: HandlerEvent, _context) => {
+    const count = queryString(event).getInt('count', 1);
 
-    let count = 1;
+    return jsonResponse(getQuotes(count ?? 1));
+};
 
-    if (Object.keys(event.queryStringParameters).includes('count')) {
-        count = Number(`0${event.queryStringParameters['count'].replace(/[^\d]+/g, '')}`);
-    }
-
-    return {
-        statusCode: 200,
-        headers: {
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify(getQuote(count)),
-    };
-  };
-
-  export { handler };
+export { handler };

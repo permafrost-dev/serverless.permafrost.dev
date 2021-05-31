@@ -4,8 +4,8 @@
 
 import { Handler, HandlerEvent } from '@netlify/functions';
 import { sizes, colors, weights } from './tailwind';
-import { randomInt, randomElement } from './../shared/helpers';
-import { EventQueryStringParameters } from '@netlify/functions/src/function/event';
+import { randomInt, randomElement, min } from './../shared/helpers';
+import { jsonResponse, queryString } from './../shared/netlify-functions';
 
 /**
  * This function is used in an attempt to make sure that dark text => light bg and vice verse.
@@ -78,6 +78,8 @@ class RandomCss {
     static generateClasses(count = 1) {
         const result: Record<string, string>[] = [];
 
+        count = min(count, 100);
+
         for (let i = 0; i < count; i++) {
             result.push({ classes: this.classes() });
         }
@@ -87,20 +89,9 @@ class RandomCss {
 }
 
 const handler: Handler = async (event: HandlerEvent, _context) => {
-    let count = 1;
+    const count = queryString(event).getInt('count', 1);
 
-    if (Object.keys(<EventQueryStringParameters>event.queryStringParameters).includes('count')) {
-        // @ts-ignore
-        count = Number(`0${event.queryStringParameters['count'].replace(/[^\d]+/g, '')}`);
-    }
-
-    return {
-        statusCode: 200,
-        headers: {
-            'content-type': 'application/json',
-        },
-        body: JSON.stringify({ items: RandomCss.generateClasses(count) }),
-    };
+    return jsonResponse(RandomCss.generateClasses(count ?? 1));
 };
 
 export { handler };
