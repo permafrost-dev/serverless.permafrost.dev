@@ -1,9 +1,10 @@
 /* eslint-disable no-unused-vars */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
-import { Handler } from '@netlify/functions';
+import { Handler, HandlerEvent } from '@netlify/functions';
 import { sizes, colors, weights } from './tailwind';
 import { randomInt, randomElement } from './../shared/helpers';
+import { EventQueryStringParameters } from '@netlify/functions/src/function/event';
 
 /**
  * This function is used in an attempt to make sure that dark text => light bg and vice verse.
@@ -74,7 +75,7 @@ class RandomCss {
     }
 
     static generateClasses(count = 1) {
-        const result = [];
+        const result: Record<string, string>[] = [];
 
         for (let i = 0; i < count; i++) {
             result.push({ classes: this.classes() });
@@ -84,10 +85,11 @@ class RandomCss {
     }
 }
 
-const handler: Handler = async (event, _context) => {
+const handler: Handler = async (event: HandlerEvent, _context) => {
     let count = 1;
 
-    if (Object.keys(event.queryStringParameters).includes('count')) {
+    if (Object.keys(<EventQueryStringParameters>event.queryStringParameters).includes('count')) {
+        // @ts-ignore
         count = Number(`0${event.queryStringParameters['count'].replace(/[^\d]+/g, '')}`);
     }
 
