@@ -23,9 +23,9 @@
     },
     "devDependencies": {
         "@types/node": "^15.6.1",
-        "@typescript-eslint/eslint-plugin": "^4.25.0",
-        "@typescript-eslint/parser": "^4.25.0",
-        "eslint": "^7.27.0",
+        "@typescript-eslint/eslint-plugin": "^8.54.0",
+        "@typescript-eslint/parser": "^8.54.0",
+        "eslint": "^9.39.2",
         "husky": "^6.0.0",
         "lint-staged": "^11.0.0",
         "netlify-cli": "^3.31.16",
